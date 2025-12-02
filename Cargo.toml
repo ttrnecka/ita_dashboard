@@ -1,0 +1,12 @@
+[package]
+name = "ita_dashboard"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+iced = { version = "0.12", features = ["canvas", "tokio"] }
+#iced_aw = "0.7"             # extra widgets (optional)
+tokio = { version = "1", features = ["full"] }
+
+# For Oracle access (Oracle DB client)
+# oracle = "0.5"              # Only when you start DB integration
