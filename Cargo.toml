@@ -9,4 +9,4 @@ iced = { version = "0.12", features = ["canvas", "tokio"] }
 tokio = { version = "1", features = ["full"] }
 
 # For Oracle access (Oracle DB client)
-# oracle = "0.5"              # Only when you start DB integration
+oracle = "0.5"              # Only when you start DB integration

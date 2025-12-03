@@ -1,3 +1,5 @@
+use std::io::Write;
+
 use iced::{
     executor, Application, Command, Element,
     Settings, Theme, widget::{column, row, button, text, container},
@@ -5,10 +7,12 @@ use iced::{
 };
 
 mod graph;
+mod oracle;
 
 #[derive(Debug, Clone)]
 pub enum Message {
     MenuSelected(MenuItem),
+    DataLoaded(Result<Vec<f32>, String>),
 }
 
 #[derive(Debug, Clone)]
@@ -20,6 +24,7 @@ pub enum MenuItem {
 
 struct MainApp {
     selected: MenuItem,
+    data: Vec<f32>
 }
 
 impl Application for MainApp {
@@ -32,8 +37,9 @@ impl Application for MainApp {
         (
             Self {
                 selected: MenuItem::Dashboard,
+                data: Vec::new(),
             },
-            Command::none(),
+            Command::perform(load_data_async(), |res| Message::DataLoaded(res))
         )
     }
 
@@ -49,6 +55,12 @@ impl Application for MainApp {
         match message {
             Message::MenuSelected(item) => {
                 self.selected = item;
+            }
+            Message::DataLoaded(Ok(vals)) => {
+                self.data = vals;
+            }
+            Message::DataLoaded(Err(err)) => {
+                eprintln!("Oracle error: {}", err);
             }
         }
         Command::none()
@@ -79,8 +91,7 @@ impl Application for MainApp {
                 text("Reports view").into()
             }
             MenuItem::Graph1 => {
-                // text("Grapth view").into()
-                graph::view(vec![1.0, 3.0, 2.0, 5.0, 4.0]).into()
+                graph::view(self.data.clone()).into()
             }
         };
 
@@ -96,5 +107,14 @@ impl Application for MainApp {
 }
 
 fn main() -> iced::Result {
+    let _ = std::io::stderr().flush();
+
     MainApp::run(Settings::default())
+}
+
+async fn load_data_async() -> Result<Vec<f32>, String> {
+    tokio::task::spawn_blocking(|| oracle::fetch_oracle_data())
+        .await
+        .map_err(|e| e.to_string())?
+        .map_err(|e| e.to_string())
 }

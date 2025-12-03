@@ -4,11 +4,6 @@ use iced::widget::canvas;
 use iced::widget::canvas::{Stroke, Path, LineCap, LineJoin};
 use iced::{ Rectangle, Renderer, Point, Length, Theme, Color};
 
-// use iced::{
-//     widget::canvas::{self, Canvas, Frame, Geometry, Path, Stroke},
-//     Point, Rectangle, Length, Element,
-// };
-
 /// Simple graph program for iced::canvas
 pub struct Graph {
     pub data: Vec<f32>,
@@ -99,11 +94,3 @@ pub fn view<Message>(data: Vec<f32>) -> canvas::Canvas<Graph,Message> {
         .width(Length::Fill)
         .height(Length::Fill)
 }
-
-
-// pub fn view<Message>(data: Vec<f32>) -> canvas::Canvas<Graph> {
-//     let canvas = canvas::Canvas::new(Graph { data })
-//         .width(Length::Fill)
-//         .height(Length::Fill);
-//     canvas
-// }
