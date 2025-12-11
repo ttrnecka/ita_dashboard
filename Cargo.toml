@@ -4,9 +4,11 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-iced = { version = "0.13.1", features = ["canvas", "tokio"] }
+iced = { version = "0.14", features = ["canvas", "tokio"] }
+chrono = "0.4"
 #iced_aw = "0.7"             # extra widgets (optional)
 tokio = { version = "1", features = ["full"] }
+winit = "0.30"
 
 # For Oracle access (Oracle DB client)
-oracle = "0.5"              # Only when you start DB integration
+oracle = { version = "0.5", features = ["chrono"] }
