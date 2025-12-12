@@ -4,12 +4,12 @@ use iced::widget::{ canvas, text};
 use iced::widget::canvas::{Stroke, Path, Text, Frame};
 use iced::{ Rectangle, Renderer, Point, Length, Theme, Color, Task, Element};
 
-use crate::db::queries::{fetch_temp_data,DataPoint};
+use crate::db::queries::{fetch_temp_data,TempDataPoint};
 
 #[derive(Default, Debug, Clone)]
-pub struct Graph {
+pub struct TempGraph {
     pub loading: bool,
-    pub data: Option<Vec<DataPoint>>,
+    pub data: Option<Vec<TempDataPoint>>,
     pub error: Option<String>,
     pub t0: NaiveDateTime,
     pub x: Vec<f32>,
@@ -24,11 +24,11 @@ pub struct Graph {
 #[derive(Debug, Clone)]
 pub enum Message {
     Load,
-    Loaded(Result<Vec<DataPoint>, String>),
+    Loaded(Result<Vec<TempDataPoint>, String>),
 }
 
 
-impl Graph {
+impl TempGraph {
     pub fn update(&mut self,message: Message) -> Task<Message> {
         match message {
             Message::Load => {
@@ -93,7 +93,7 @@ impl Graph {
         }
     }
 
-    fn split_series(self: &'_ Self, data: &[DataPoint]) -> (Vec<f32>, Vec<f32>, Vec<f32>) {
+    fn split_series(self: &'_ Self, data: &[TempDataPoint]) -> (Vec<f32>, Vec<f32>, Vec<f32>) {
         let mut x = Vec::new();
         let mut y1 = Vec::new();
         let mut y2 = Vec::new();
@@ -132,7 +132,7 @@ impl Graph {
     }
 }
 
-impl<Message> canvas::Program<Message> for Graph {
+impl<Message> canvas::Program<Message> for TempGraph {
     type State = ();
 
     fn draw(
@@ -184,7 +184,7 @@ impl<Message> canvas::Program<Message> for Graph {
 }
 
 
-pub async fn load_temp_async() -> Result<Vec<DataPoint>, String> {
+pub async fn load_temp_async() -> Result<Vec<TempDataPoint>, String> {
     tokio::task::spawn_blocking(|| fetch_temp_data())
         .await
         .map_err(|e| e.to_string())?

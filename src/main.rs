@@ -4,31 +4,34 @@ use iced::{
 };
 
 mod temp;
-use temp::Graph;
+use temp::TempGraph;
+mod tablespace;
+use tablespace::TablespaceTable;
 
 mod db;
 
 #[derive(Debug, Clone)]
 pub enum Message {
-    Dashboard,
+    Tablespace(tablespace::Message),
     Temp(temp::Message)
 }
 
 #[derive(Debug, Clone)]
 pub enum MenuItem {
-    Dashboard,
+    Tablespace,
     Temp,
 }
 
 impl Default for MenuItem {
     fn default() -> Self {
-        Self::Dashboard    }
+        Self::Temp    }
 }
 
 #[derive(Default,Debug)]
 struct MainApp {
     selected: MenuItem,
-    temp: Graph,
+    temp: TempGraph,
+    tablespace: TablespaceTable
 }
 
 impl MainApp {
@@ -45,9 +48,9 @@ impl MainApp {
 
     fn update(&mut self, message: Message) -> Task<Message> {
         match message {
-            Message::Dashboard => {
-                self.selected = MenuItem::Dashboard;
-                Task::none()
+            Message::Tablespace(message) => {
+                self.selected = MenuItem::Tablespace;
+                self.tablespace.update(message).map(Message::Tablespace)
             }
             Message::Temp(temp_message) => {
                 self.selected = MenuItem::Temp;
@@ -59,12 +62,12 @@ impl MainApp {
 
     fn view(&'_ self) -> Element<'_, Message> {
         let menu = column![
-            button("Dashboard")
-                .width(Length::Fill)
-                .on_press(Message::Dashboard),
             button("Temp")
                 .width(Length::Fill)
                 .on_press(Message::Temp(temp::Message::Load)),
+            button("Tablespace")
+                .width(Length::Fill)
+                .on_press(Message::Tablespace(tablespace::Message::Load)),
         ]
         .spacing(2)
         .padding(5)
@@ -72,8 +75,8 @@ impl MainApp {
 
         // RIGHT SIDE READING PANE CONTENT
         let content: Element<_> = match &self.selected {
-            MenuItem::Dashboard => {
-                text("Dashboard content here").into()
+            MenuItem::Tablespace => {
+                self.tablespace.view().map(Message::Tablespace)
             }
             MenuItem::Temp => {
                 self.temp.view().map(Message::Temp)
