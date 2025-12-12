@@ -1,9 +1,10 @@
-use oracle::{Connection, Error};
 use chrono::{NaiveDateTime, Duration};
 use iced::mouse;
 use iced::widget::{ canvas, text};
 use iced::widget::canvas::{Stroke, Path, Text, Frame};
 use iced::{ Rectangle, Renderer, Point, Length, Theme, Color, Task, Element};
+
+use crate::db::queries::{fetch_temp_data,DataPoint};
 
 #[derive(Default, Debug, Clone)]
 pub struct Graph {
@@ -24,13 +25,6 @@ pub struct Graph {
 pub enum Message {
     Load,
     Loaded(Result<Vec<DataPoint>, String>),
-}
-
-#[derive(Debug, Clone)]
-pub struct DataPoint {
-    pub ts: chrono::NaiveDateTime,
-    pub a: f32,
-    pub b: f32,
 }
 
 
@@ -196,35 +190,6 @@ pub async fn load_temp_async() -> Result<Vec<DataPoint>, String> {
         .map_err(|e| e.to_string())?
         .map_err(|e| e.to_string())
 }
-
-fn fetch_temp_data() -> Result<Vec<DataPoint>, Error> {
-    // let conn = Connection::connect("XXXX", "XXXX", "1.1.1.1:1521/db")?;
-    
-
-    let sql = r#"
-        SELECT log_date, used_gb, total_gb 
-        FROM dxc_v_temp_log
-        WHERE log_date > SYSDATE - 7
-        ORDER BY log_date
-    "#;
-
-    let mut values = Vec::new();
-
-    for row_result in conn.query(sql, &[])? {
-        let row = row_result?;
-        let ts: NaiveDateTime = row.get(0)?;
-        let a: f64 = row.get(1)?;
-        let b: f64 = row.get(2)?;
-        values.push(DataPoint {
-            ts,
-            a: a as f32,
-            b: b as f32,
-        });
-    }
-
-    Ok(values)
-}
-
 
 fn draw_axes(
     frame: &mut Frame,

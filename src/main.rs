@@ -6,6 +6,8 @@ use iced::{
 mod temp;
 use temp::Graph;
 
+mod db;
+
 #[derive(Debug, Clone)]
 pub enum Message {
     Dashboard,
@@ -35,7 +37,7 @@ impl MainApp {
     }
 
     fn title(&self) -> String {
-        "ITA Dashboard".to_string()
+        "ITA Dashboard".into()
     }
     // fn title(&self) -> Theme {
     //     "ITA Dashboard"

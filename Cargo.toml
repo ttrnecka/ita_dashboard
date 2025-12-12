@@ -11,4 +11,10 @@ tokio = { version = "1", features = ["full"] }
 winit = "0.30"
 
 # For Oracle access (Oracle DB client)
-oracle = { version = "0.5", features = ["chrono"] }
+# oracle = { version = "0.5", features = ["chrono"] }
+serde = {version = "1.0.228", features = ["derive"] }
+r2d2 = "0.8.10"
+r2d2-oracle = { version = "0.7.0", features = ["chrono"] }
+toml = "0.9.8"
+thiserror = "2.0.17"
+anyhow = "1.0.100"
