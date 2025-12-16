@@ -1,6 +1,6 @@
 use std::io::Write;
 use iced::{
-    Alignment, Element, Length, Task, Theme, widget::{button, column, container, row, text}, window::{Settings}
+    Alignment, Element, Length, Task, Theme, widget::{button, column, container, row}, window::{Settings}
 };
 
 mod temp;
@@ -45,6 +45,10 @@ impl MainApp {
     // fn title(&self) -> Theme {
     //     "ITA Dashboard"
     // }
+
+    fn boot() -> (MainApp, Task<Message>) {
+        (MainApp::default(), Task::done(Message::Temp(temp::Message::Load)))
+    }
 
     fn update(&mut self, message: Message) -> Task<Message> {
         match message {
@@ -98,7 +102,7 @@ impl MainApp {
 fn main() -> iced::Result {
     let _ = std::io::stderr().flush();
 
-    iced::application(MainApp::default,MainApp::update, MainApp::view)
+    iced::application(MainApp::boot,MainApp::update, MainApp::view)
     .theme(MainApp::theme)
     .title(MainApp::title)
     .centered()
