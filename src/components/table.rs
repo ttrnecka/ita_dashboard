@@ -3,6 +3,8 @@ use std::default::Default;
 use iced::widget::{row, column, scrollable, Container, text};
 use iced::{Element, Length, Font};
 
+use crate::db::DbError;
+
 /// Generic table state used by multiple table views (filesystem, tablespace, ...)
 #[derive(Default, Debug, Clone)]
 pub struct TableState {

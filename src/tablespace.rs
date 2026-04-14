@@ -2,6 +2,7 @@ use iced::{Element, Task };
 
 use crate::db::queries::{fetch_tablespace_data};
 use crate::components::table::TableState;
+use crate::db::load_async;
 
 const TABLESPACE_HEADERS: &[&str] = &[
     "Name",
@@ -27,7 +28,7 @@ impl TablespaceTable {
         match message {
             Message::Load => {
                 self.state.begin_load();
-                Task::perform(load_async(), Message::Loaded)
+                Task::perform(load_async(fetch_tablespace_data), Message::Loaded)
             }
             Message::Loaded(result) => {
                 self.state.apply_loaded(result);
@@ -39,11 +40,4 @@ impl TablespaceTable {
     pub fn view(self: &'_ Self) -> Element<'_, Message> { 
         self.state.view::<Message>(TABLESPACE_HEADERS)
     }
-}
-
-pub async fn load_async() -> Result<Vec<Vec<String>>, String> {
-    tokio::task::spawn_blocking(|| fetch_tablespace_data())
-        .await
-        .map_err(|e| e.to_string())?
-        .map_err(|e| e.to_string())
 }
