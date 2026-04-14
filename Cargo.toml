@@ -18,3 +18,10 @@ r2d2-oracle = { version = "0.7.0", features = ["chrono"] }
 toml = "0.9.8"
 thiserror = "2.0.17"
 anyhow = "1.0.100"
+
+[profile.release]
+opt-level = "z"
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+strip = true

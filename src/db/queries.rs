@@ -178,3 +178,53 @@ pub fn fetch_session_history_data(start_date: NaiveDateTime, end_date: NaiveDate
 
     Ok(values)
 }
+
+pub fn fetch_session_temp_data() -> Result<Vec<Vec<String>>, DbError> {
+    let pool = get_pool()?;
+    let conn = pool.get()?;
+
+    let sql = r#"
+        SELECT
+            s.sid,
+            s.serial#,
+            s.username,
+            s.program,
+            u.tablespace,
+            u.segtype,
+            u.blocks * t.block_size / 1024 / 1024 AS temp_mb_used,
+            s.sql_id,
+            q.sql_text
+        FROM
+            v$tempseg_usage u
+            JOIN v$session s ON s.saddr = u.session_addr
+            JOIN dba_tablespaces t ON u.tablespace = t.tablespace_name
+            LEFT JOIN v$sql q ON s.sql_id = q.sql_id
+        ORDER BY
+            temp_mb_used DESC
+    "#;
+
+    let mut values = Vec::new();
+
+    for row_result in conn.query(sql, &[])? {
+    // for row_result in conn.query(sql, &[])? {
+        let row = row_result?;   
+        let sid: String = row.get::<usize, Option<String>>(0)?.unwrap_or_default();
+        let serial: String = row.get::<usize, Option<String>>(1)?.unwrap_or_default();
+        let username: String = row.get::<usize, Option<String>>(2)?.unwrap_or_default();
+        let program: String = row.get::<usize, Option<String>>(3)?.unwrap_or_default();
+        let tablespace: String = row.get::<usize, Option<String>>(4)?.unwrap_or_default();
+        let segtype: String = row.get::<usize, Option<String>>(5)?.unwrap_or_default();
+        let temp_mb_used: String = row.get::<usize, Option<String>>(6)?.unwrap_or_default();
+        let sql_id: String = row.get::<usize, Option<String>>(7)?.unwrap_or_default();
+        let sql_text: String = row.get::<usize, Option<String>>(8)?
+            .unwrap_or_default()
+            .chars()
+            .take(47)
+            .collect::<String>()
+            + if row.get::<usize, Option<String>>(8)?.unwrap_or_default().len() > 50 { "..." } else { "" };
+
+        values.push(vec!(sid, serial, username, program, tablespace, segtype, temp_mb_used, sql_id, sql_text));
+    }
+
+    Ok(values)
+}

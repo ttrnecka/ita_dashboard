@@ -11,6 +11,8 @@ mod filesystem;
 use filesystem::FilesystemTable;
 mod session_history;
 use session_history::SessionHistoryTable;
+mod session_temp;
+use session_temp::SessionTempTable;
 
 mod components;
 
@@ -21,7 +23,9 @@ pub enum Message {
     Tablespace(tablespace::Message),
     Filesystem(filesystem::Message),
     SessionHistory(session_history::Message),
+    SessionTemp(session_temp::Message),
     Temp(temp::Message)
+    
 }
 
 #[derive(Debug, Clone)]
@@ -29,6 +33,7 @@ pub enum MenuItem {
     Tablespace,
     Filesystem,
     SessionHistory,
+    SessionTemp,
     Temp,
 }
 
@@ -44,6 +49,7 @@ struct MainApp {
     tablespace: TablespaceTable,
     filesystem: FilesystemTable,
     session_history: SessionHistoryTable,
+    session_temp: SessionTempTable,
 }
 
 impl MainApp {
@@ -73,6 +79,10 @@ impl MainApp {
                 self.selected = MenuItem::SessionHistory;
                 self.session_history.update(message).map(Message::SessionHistory)
             }
+            Message::SessionTemp(message) => {
+                self.selected = MenuItem::SessionTemp;
+                self.session_temp.update(message).map(Message::SessionTemp)
+            }
             Message::Temp(temp_message) => {
                 self.selected = MenuItem::Temp;
                 self.temp.update(temp_message).map(Message::Temp)
@@ -86,6 +96,9 @@ impl MainApp {
             button("Temp")
                 .width(Length::Fill)
                 .on_press(Message::Temp(temp::Message::Load)),
+            button("Session Temp")
+                .width(Length::Fill)
+                .on_press(Message::SessionTemp(session_temp::Message::Load)),
             button("Tablespace")
                 .width(Length::Fill)
                 .on_press(Message::Tablespace(tablespace::Message::Load)),
@@ -110,6 +123,9 @@ impl MainApp {
             }
             MenuItem::SessionHistory => {
                 self.session_history.view().map(Message::SessionHistory)
+            }
+            MenuItem::SessionTemp => {
+                self.session_temp.view().map(Message::SessionTemp)
             }
             MenuItem::Temp => {
                 self.temp.view().map(Message::Temp)
