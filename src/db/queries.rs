@@ -152,9 +152,10 @@ pub fn fetch_session_history_data(start_date: NaiveDateTime, end_date: NaiveDate
         ASH.sql_opname,
         ASH.sql_exec_id,
         ASH.module
-        HAVING MAX(temp_space_allocated) > 0
+        HAVING MAX(temp_space_allocated) > 0 AND
+        ROUND(((CAST(MAX(sample_time) AS DATE)) - (CAST(MIN(sample_time) AS DATE))) * (3600*24),0) > 0
         ORDER BY MAX(temp_space_allocated) DESC
-        FETCH FIRST 1000 ROWS ONLY
+        FETCH FIRST 100 ROWS ONLY
     "#;
 
     let mut values = Vec::new();

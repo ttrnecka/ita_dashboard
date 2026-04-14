@@ -22,6 +22,11 @@ pub enum Message {
     Loaded(Result<Vec<Vec<String>>, String>),
     StartChanged(String),
     EndChanged(String),
+    PresetLast1Hour,
+    PresetLast24Hours,
+    PresetToday,
+    PresetYesterday,
+    PresetLast7Days,
 }
 
 #[derive(Debug, Clone)]
@@ -86,6 +91,45 @@ impl SessionHistoryTable {
                 self.end_str = s;
                 Task::none()
             }
+            Message::PresetLast1Hour => {
+                let now = Local::now().naive_local();
+                let start = now - Duration::hours(1);
+                self.start_str = start.format("%Y-%m-%d %H:%M:%S").to_string();
+                self.end_str = now.format("%Y-%m-%d %H:%M:%S").to_string();
+                Task::none()
+            }
+            Message::PresetLast24Hours => {
+                let now = Local::now().naive_local();
+                let start = now - Duration::hours(24);
+                self.start_str = start.format("%Y-%m-%d %H:%M:%S").to_string();
+                self.end_str = now.format("%Y-%m-%d %H:%M:%S").to_string();
+                Task::none()
+            }
+            Message::PresetToday => {
+                let now = Local::now().naive_local();
+                let start = now.date().and_hms_opt(0,0,0).unwrap();
+                let end = now.date().and_hms_opt(23,59,59).unwrap();
+                self.start_str = start.format("%Y-%m-%d %H:%M:%S").to_string();
+                self.end_str = end.format("%Y-%m-%d %H:%M:%S").to_string();
+                Task::none()
+            }
+            Message::PresetYesterday => {
+                let now = Local::now().naive_local();
+                let yesterday_dt = now - Duration::days(1);
+                let yesterday = yesterday_dt.date();
+                let start = yesterday.and_hms_opt(0,0,0).unwrap();
+                let end = yesterday.and_hms_opt(23,59,59).unwrap();
+                self.start_str = start.format("%Y-%m-%d %H:%M:%S").to_string();
+                self.end_str = end.format("%Y-%m-%d %H:%M:%S").to_string();
+                Task::none()
+            }
+            Message::PresetLast7Days => {
+                let now = Local::now().naive_local();
+                let start = now - Duration::days(7);
+                self.start_str = start.format("%Y-%m-%d %H:%M:%S").to_string();
+                self.end_str = now.format("%Y-%m-%d %H:%M:%S").to_string();
+                Task::none()
+            }
             Message::Loaded(result) => {
                 self.state.apply_loaded(result);
                 Task::none()
@@ -94,7 +138,17 @@ impl SessionHistoryTable {
     }
 
     pub fn view(self: &'_ Self) -> Element<'_, Message> { 
-        // inputs for start and end dates plus a load button
+        // preset buttons + inputs for start and end dates plus a load button
+        let presets = row![
+            button("Last 1h").on_press(Message::PresetLast1Hour),
+            button("Last 24h").on_press(Message::PresetLast24Hours),
+            button("Today").on_press(Message::PresetToday),
+            button("Yesterday").on_press(Message::PresetYesterday),
+            button("Last 7d").on_press(Message::PresetLast7Days),
+        ]
+        .spacing(8)
+        .padding(6);
+
         let start_input = iced::widget::TextInput::new("YYYY-MM-DD HH:MM:SS", &self.start_str)
             .on_input(Message::StartChanged)
             .padding(6)
@@ -106,6 +160,7 @@ impl SessionHistoryTable {
         let load_btn = button("Load").on_press(Message::Load);
 
         column![
+            presets,
             row![start_input, end_input, load_btn].spacing(10).padding(10),
             self.state.view::<Message>(SESSION_HISTORY_HEADERS)
         ]
