@@ -3,7 +3,7 @@ use iced::{Element, Task, widget::{column, row, button } };
 use crate::db::queries::{fetch_session_history_data};
 use crate::components::table::TableState;
 use crate::db::load_async;
-use chrono::NaiveDateTime;
+use chrono::{NaiveDateTime, Local, Duration};
 
 const SESSION_HISTORY_HEADERS: &[&str] = &[
     "SID",
@@ -24,11 +24,23 @@ pub enum Message {
     EndChanged(String),
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Debug, Clone)]
 pub struct SessionHistoryTable {
     pub state: TableState,
     pub start_str: String,
     pub end_str: String,
+}
+
+impl Default for SessionHistoryTable {
+    fn default() -> Self {
+        let now = Local::now().naive_local();
+        let start = now - Duration::hours(1);
+        Self {
+            state: TableState::default(),
+            start_str: start.format("%Y-%m-%d %H:%M:%S").to_string(),
+            end_str: now.format("%Y-%m-%d %H:%M:%S").to_string(),
+        }
+    }
 }
 
 impl SessionHistoryTable {
