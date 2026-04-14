@@ -121,3 +121,59 @@ pub fn fetch_filesystem_data() -> Result<Vec<Vec<String>>, DbError> {
 
     Ok(values)
 }
+
+// pub fn fetch_session_history_data() -> Result<Vec<Vec<String>>, DbError> {
+pub fn fetch_session_history_data(start_date: NaiveDateTime, end_date: NaiveDateTime) -> Result<Vec<Vec<String>>, DbError> {
+    // let start_date = NaiveDateTime::parse_from_str("2026-04-14 00:00:00", "%Y-%m-%d %H:%M:%S").unwrap();
+    // let end_date = NaiveDateTime::parse_from_str("2026-04-14 23:59:59", "%Y-%m-%d %H:%M:%S").unwrap();
+    let pool = get_pool()?;
+    let conn = pool.get()?;
+
+    let sql = r#"
+    SELECT 
+        ASH.session_id sid,
+        ASH.session_serial# serial#,
+        ASH.sql_id,
+        ASH.sql_opname,
+        MIN(sample_time) sql_start_time,
+        MAX(sample_time) sql_end_time,
+        ROUND(((CAST(MAX(sample_time) AS DATE)) - (CAST(MIN(sample_time) AS DATE))) * (3600*24),0) etime_secs ,
+        ROUND(((CAST(MAX(sample_time) AS DATE)) - (CAST(MIN(sample_time) AS DATE))) * (60*24),1) etime_mins ,
+        MAX(temp_space_allocated)/(1024*1024) max_temp_mb
+        FROM DBA_HIST_ACTIVE_SESS_HISTORY ASH
+        WHERE ASH.session_type = 'FOREGROUND'
+        AND ASH.sql_id        IS NOT NULL
+        AND sample_time BETWEEN :start_date AND :end_date
+        GROUP BY ASH.instance_number,
+        ASH.user_id,
+        ASH.session_id,
+        ASH.session_serial#,
+        ASH.sql_id,
+        ASH.sql_opname,
+        ASH.sql_exec_id,
+        ASH.module
+        HAVING MAX(temp_space_allocated) > 0
+        ORDER BY MAX(temp_space_allocated) DESC
+        FETCH FIRST 1000 ROWS ONLY
+    "#;
+
+    let mut values = Vec::new();
+
+    for row_result in conn.query(sql, &[&start_date, &end_date])? {
+    // for row_result in conn.query(sql, &[])? {
+        let row = row_result?;   
+        let sid: String = row.get::<usize, Option<String>>(0)?.unwrap_or_default();
+        let serial: String = row.get::<usize, Option<String>>(1)?.unwrap_or_default();
+        let sql_id: String = row.get::<usize, Option<String>>(2)?.unwrap_or_default();
+        let sql_opname: String = row.get::<usize, Option<String>>(3)?.unwrap_or_default();
+        let sql_start_time: String = row.get::<usize, Option<String>>(4)?.unwrap_or_default();
+        let sql_end_time: String = row.get::<usize, Option<String>>(5)?.unwrap_or_default();
+        let etime_secs: String = row.get::<usize, Option<String>>(6)?.unwrap_or_default();
+        let etime_mins: String = row.get::<usize, Option<String>>(7)?.unwrap_or_default();
+        let max_temp_mb: String = row.get::<usize, Option<String>>(8)?.unwrap_or_default();
+
+        values.push(vec!(sid, serial, sql_id, sql_opname, sql_start_time, sql_end_time, etime_secs, etime_mins, max_temp_mb));
+    }
+
+    Ok(values)
+}

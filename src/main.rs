@@ -9,6 +9,8 @@ mod tablespace;
 use tablespace::TablespaceTable;
 mod filesystem;
 use filesystem::FilesystemTable;
+mod session_history;
+use session_history::SessionHistoryTable;
 
 mod components;
 
@@ -18,6 +20,7 @@ mod db;
 pub enum Message {
     Tablespace(tablespace::Message),
     Filesystem(filesystem::Message),
+    SessionHistory(session_history::Message),
     Temp(temp::Message)
 }
 
@@ -25,6 +28,7 @@ pub enum Message {
 pub enum MenuItem {
     Tablespace,
     Filesystem,
+    SessionHistory,
     Temp,
 }
 
@@ -39,6 +43,7 @@ struct MainApp {
     temp: TempGraph,
     tablespace: TablespaceTable,
     filesystem: FilesystemTable,
+    session_history: SessionHistoryTable,
 }
 
 impl MainApp {
@@ -64,9 +69,12 @@ impl MainApp {
                 self.selected = MenuItem::Filesystem;
                 self.filesystem.update(message).map(Message::Filesystem)
             }
+            Message::SessionHistory(message) => {
+                self.selected = MenuItem::SessionHistory;
+                self.session_history.update(message).map(Message::SessionHistory)
+            }
             Message::Temp(temp_message) => {
                 self.selected = MenuItem::Temp;
-
                 self.temp.update(temp_message).map(Message::Temp)
             }
             
@@ -84,6 +92,9 @@ impl MainApp {
             button("Filesystem")
                 .width(Length::Fill)
                 .on_press(Message::Filesystem(filesystem::Message::Load)),
+            button("Session History")
+                .width(Length::Fill)
+                .on_press(Message::SessionHistory(session_history::Message::Load)),
         ]
         .spacing(2)
         .padding(5)
@@ -96,6 +107,9 @@ impl MainApp {
             }
             MenuItem::Filesystem => {
                 self.filesystem.view().map(Message::Filesystem)
+            }
+            MenuItem::SessionHistory => {
+                self.session_history.view().map(Message::SessionHistory)
             }
             MenuItem::Temp => {
                 self.temp.view().map(Message::Temp)
