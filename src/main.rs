@@ -10,6 +10,8 @@ use tablespace::TablespaceTable;
 mod filesystem;
 use filesystem::FilesystemTable;
 
+mod components;
+
 mod db;
 
 #[derive(Debug, Clone)]
