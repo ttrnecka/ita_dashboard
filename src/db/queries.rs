@@ -86,3 +86,38 @@ pub fn fetch_tablespace_data() -> Result<Vec<Vec<String>>, DbError> {
 
     Ok(values)
 }
+
+// Fetch filesytem utilization data
+pub fn fetch_filesystem_data() -> Result<Vec<Vec<String>>, DbError> {
+    let pool = get_pool()?;
+    let conn = pool.get()?;
+
+    let sql = r#"
+        SELECT
+            filesystem,
+            size_1,
+            used,
+            available,
+            to_number(regexp_replace(use, '%', '')) use,
+            mounted
+        FROM
+            ext_v_db_filesystem
+        ORDER BY mounted
+    "#;
+
+    let mut values = Vec::new();
+
+    for row_result in conn.query(sql, &[])? {
+        let row = row_result?;   
+        let fs: String = row.get(0)?;
+        let size: String = row.get(1)?;
+        let used: String = row.get(2)?;
+        let available: String = row.get(3)?;
+        let used_pct: String = row.get(4)?;
+        let mounted: String = row.get(5)?;
+
+        values.push(vec!(fs, size, used, available, used_pct, mounted));
+    }
+
+    Ok(values)
+}

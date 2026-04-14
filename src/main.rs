@@ -7,18 +7,22 @@ mod temp;
 use temp::TempGraph;
 mod tablespace;
 use tablespace::TablespaceTable;
+mod filesystem;
+use filesystem::FilesystemTable;
 
 mod db;
 
 #[derive(Debug, Clone)]
 pub enum Message {
     Tablespace(tablespace::Message),
+    Filesystem(filesystem::Message),
     Temp(temp::Message)
 }
 
 #[derive(Debug, Clone)]
 pub enum MenuItem {
     Tablespace,
+    Filesystem,
     Temp,
 }
 
@@ -31,7 +35,8 @@ impl Default for MenuItem {
 struct MainApp {
     selected: MenuItem,
     temp: TempGraph,
-    tablespace: TablespaceTable
+    tablespace: TablespaceTable,
+    filesystem: FilesystemTable,
 }
 
 impl MainApp {
@@ -42,9 +47,6 @@ impl MainApp {
     fn title(&self) -> String {
         "ITA Dashboard".into()
     }
-    // fn title(&self) -> Theme {
-    //     "ITA Dashboard"
-    // }
 
     fn boot() -> (MainApp, Task<Message>) {
         (MainApp::default(), Task::done(Message::Temp(temp::Message::Load)))
@@ -56,11 +58,16 @@ impl MainApp {
                 self.selected = MenuItem::Tablespace;
                 self.tablespace.update(message).map(Message::Tablespace)
             }
+            Message::Filesystem(message) => {
+                self.selected = MenuItem::Filesystem;
+                self.filesystem.update(message).map(Message::Filesystem)
+            }
             Message::Temp(temp_message) => {
                 self.selected = MenuItem::Temp;
 
                 self.temp.update(temp_message).map(Message::Temp)
             }
+            
         }
     }
 
@@ -72,6 +79,9 @@ impl MainApp {
             button("Tablespace")
                 .width(Length::Fill)
                 .on_press(Message::Tablespace(tablespace::Message::Load)),
+            button("Filesystem")
+                .width(Length::Fill)
+                .on_press(Message::Filesystem(filesystem::Message::Load)),
         ]
         .spacing(2)
         .padding(5)
@@ -81,6 +91,9 @@ impl MainApp {
         let content: Element<_> = match &self.selected {
             MenuItem::Tablespace => {
                 self.tablespace.view().map(Message::Tablespace)
+            }
+            MenuItem::Filesystem => {
+                self.filesystem.view().map(Message::Filesystem)
             }
             MenuItem::Temp => {
                 self.temp.view().map(Message::Temp)
