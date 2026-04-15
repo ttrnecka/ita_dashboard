@@ -228,3 +228,27 @@ pub fn fetch_session_temp_data() -> Result<Vec<Vec<String>>, DbError> {
 
     Ok(values)
 }
+
+pub fn fetch_sqlid_data(sql_id: &str) -> Result<Vec<Vec<String>>, DbError> {
+    let pool = get_pool()?;
+    let conn = pool.get()?;
+
+    let sql = r#"
+        SELECT sql_id,sql_text
+        FROM DBA_HIST_SQLTEXT
+        WHERE sql_id = :sql_id
+    "#;
+
+    let mut values = Vec::new();
+
+    for row_result in conn.query(sql, &[&sql_id])? {
+        let row = row_result?;   
+        let sql_id: String = row.get(0)?;
+        let sql_text: String = row.get(1)?;
+
+
+        values.push(vec!(sql_id, sql_text));
+    }
+
+    Ok(values)
+}

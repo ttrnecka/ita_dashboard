@@ -39,6 +39,7 @@ impl FilesystemTable {
     }
 
     pub fn view(self: &'_ Self) -> Element<'_, Message> { 
-        self.state.view::<Message>(FILESYSTEM_HEADERS)
+        let on_click: Option<fn(usize, String) -> Message> = None;
+        self.state.view(FILESYSTEM_HEADERS, on_click)
     }
 }

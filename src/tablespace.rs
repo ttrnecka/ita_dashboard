@@ -38,6 +38,7 @@ impl TablespaceTable {
     }
 
     pub fn view(self: &'_ Self) -> Element<'_, Message> { 
-        self.state.view::<Message>(TABLESPACE_HEADERS)
+        let on_click: Option<fn(usize, String) -> Message> = None;
+        self.state.view(TABLESPACE_HEADERS, on_click).into()
     }
 }
