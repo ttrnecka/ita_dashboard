@@ -1,6 +1,6 @@
 use iced::{Element, Task };
 
-use crate::db::queries::{fetch_tablespace_data};
+use crate::db::queries::{fetch_tablespace_data, TableResult};
 use crate::components::table::TableState;
 use crate::db::load_async;
 
@@ -15,7 +15,7 @@ const TABLESPACE_HEADERS: &[&str] = &[
 #[derive(Debug, Clone)]
 pub enum Message {
     Load,
-    Loaded(Result<Vec<Vec<String>>, String>),
+    Loaded(TableResult),
 }
 
 #[derive(Default, Debug, Clone)]

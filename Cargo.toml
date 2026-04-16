@@ -25,3 +25,10 @@ lto = "fat"
 codegen-units = 1
 panic = "abort"
 strip = true
+
+[profile.dev]
+opt-level = 0        # no optimization → fastest compile
+debug = true         # keep debug info
+incremental = true   # reuse previous compilation work
+codegen-units = 256  # more parallelism → faster builds
+lto = false          # disable link-time optimization

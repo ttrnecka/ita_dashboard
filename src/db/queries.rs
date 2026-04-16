@@ -39,7 +39,13 @@ pub fn fetch_temp_data() -> Result<Vec<TempDataPoint>, DbError> {
 // #[derive(Debug,Clone)]
 // pub struct TableSpaceRow(pub String,pub u32,pub u32,pub u32,pub u32,pub u32);
 
-pub fn fetch_tablespace_data() -> Result<Vec<Vec<String>>, DbError> {
+pub type TableResult = Result<Vec<Vec<String>>, DbError>;
+
+pub fn default_table_result() -> TableResult {
+    Ok(Vec::new())
+}
+
+pub fn fetch_tablespace_data() -> TableResult {
     let pool = get_pool()?;
     let conn = pool.get()?;
 
@@ -88,7 +94,7 @@ pub fn fetch_tablespace_data() -> Result<Vec<Vec<String>>, DbError> {
 }
 
 // Fetch filesytem utilization data
-pub fn fetch_filesystem_data() -> Result<Vec<Vec<String>>, DbError> {
+pub fn fetch_filesystem_data() -> TableResult {
     let pool = get_pool()?;
     let conn = pool.get()?;
 
@@ -123,7 +129,7 @@ pub fn fetch_filesystem_data() -> Result<Vec<Vec<String>>, DbError> {
 }
 
 // pub fn fetch_session_history_data() -> Result<Vec<Vec<String>>, DbError> {
-pub fn fetch_session_history_data(start_date: NaiveDateTime, end_date: NaiveDateTime) -> Result<Vec<Vec<String>>, DbError> {
+pub fn fetch_session_history_data(start_date: NaiveDateTime, end_date: NaiveDateTime) -> TableResult {
     // let start_date = NaiveDateTime::parse_from_str("2026-04-14 00:00:00", "%Y-%m-%d %H:%M:%S").unwrap();
     // let end_date = NaiveDateTime::parse_from_str("2026-04-14 23:59:59", "%Y-%m-%d %H:%M:%S").unwrap();
     let pool = get_pool()?;
@@ -179,7 +185,7 @@ pub fn fetch_session_history_data(start_date: NaiveDateTime, end_date: NaiveDate
     Ok(values)
 }
 
-pub fn fetch_session_temp_data() -> Result<Vec<Vec<String>>, DbError> {
+pub fn fetch_session_temp_data() -> TableResult {
     let pool = get_pool()?;
     let conn = pool.get()?;
 
@@ -229,7 +235,7 @@ pub fn fetch_session_temp_data() -> Result<Vec<Vec<String>>, DbError> {
     Ok(values)
 }
 
-pub fn fetch_sqlid_data(sql_id: &str) -> Result<Vec<Vec<String>>, DbError> {
+pub fn fetch_sqlid_data(sql_id: &str) -> TableResult {
     let pool = get_pool()?;
     let conn = pool.get()?;
 

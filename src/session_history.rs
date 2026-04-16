@@ -1,8 +1,9 @@
-use iced::{Element, Task, Length, Theme, widget::{column, row, button,container,text,stack} };
+use iced::{Element, Task, Length, Theme, widget::{column, row, button,container,text,stack, scrollable} };
 
-use crate::db::queries::{fetch_session_history_data,fetch_sqlid_data};
+use crate::db::queries::{fetch_session_history_data,fetch_sqlid_data,TableResult, default_table_result};
 use crate::components::table::TableState;
-use crate::db::load_async;
+use crate::db::{load_async, DbError};
+use crate::db::load::{sqlid_as_text};
 use chrono::{NaiveDateTime, Local, Duration};
 
 const SESSION_HISTORY_HEADERS: &[&str] = &[
@@ -19,8 +20,8 @@ const SESSION_HISTORY_HEADERS: &[&str] = &[
 #[derive(Debug, Clone)]
 pub enum Message {
     Load,
-    Loaded(Result<Vec<Vec<String>>, String>),
-    SQLID(Result<Vec<Vec<String>>, String>),
+    Loaded(TableResult),
+    SQLID(TableResult),
     CellClicked(usize,String), 
     ClosePopup,
     StartChanged(String),
@@ -38,8 +39,7 @@ pub struct SessionHistoryTable {
     pub start_str: String,
     pub end_str: String,
     show_popup: bool,
-    sqlid_data: Option<Vec<Vec<String>>>,
-    sqlid_error: Option<String>,
+    sqlid_result: TableResult,
 }
 
 impl Default for SessionHistoryTable {
@@ -51,8 +51,7 @@ impl Default for SessionHistoryTable {
             start_str: start.format("%Y-%m-%d %H:%M:%S").to_string(),
             end_str: now.format("%Y-%m-%d %H:%M:%S").to_string(),
             show_popup: false,
-            sqlid_data: None,
-            sqlid_error: None,
+            sqlid_result: default_table_result(),
         }
     }
 }
@@ -61,18 +60,19 @@ impl SessionHistoryTable {
     pub fn update(&mut self,message: Message) -> Task<Message> {
         match message {
             Message::Load => {
+                self.state.begin_load();
                 // Parse dates provided by user (stored in start_str/end_str). If parsing fails,
                 // set an error into the table state and do not start the async task.
                 let start = if !self.start_str.is_empty() {
                     match NaiveDateTime::parse_from_str(&self.start_str, "%Y-%m-%d %H:%M:%S") {
                         Ok(dt) => dt,
                         Err(e) => {
-                            self.state.apply_loaded(Err(format!("Invalid start date: {}", e)));
+                            self.state.apply_loaded(Err(DbError::Config(format!("Invalid start date: {}", e))));
                             return Task::none();
                         }
                     }
                 } else {
-                    self.state.apply_loaded(Err("Start date is empty".into()));
+                    self.state.apply_loaded(Err(DbError::Config("Start date is empty".into())));
                     return Task::none();
                 };
 
@@ -80,16 +80,15 @@ impl SessionHistoryTable {
                     match NaiveDateTime::parse_from_str(&self.end_str, "%Y-%m-%d %H:%M:%S") {
                         Ok(dt) => dt,
                         Err(e) => {
-                            self.state.apply_loaded(Err(format!("Invalid end date: {}", e)));
+                            self.state.apply_loaded(Err(DbError::Config(format!("Invalid end date: {}", e))));
                             return Task::none();
                         }
                     }
                 } else {
-                    self.state.apply_loaded(Err("End date is empty".into()));
+                    self.state.apply_loaded(Err(DbError::Config("End date is empty".into())));
                     return Task::none();
                 };
 
-                self.state.begin_load();
                 Task::perform(load_async(move || fetch_session_history_data(start, end)), Message::Loaded)
             }
             Message::StartChanged(s) => {
@@ -144,19 +143,14 @@ impl SessionHistoryTable {
                 Task::none()
             }
             Message::SQLID(result) => {
-                match result {
-                    Ok(data) => self.sqlid_data = Some(data),
-                    Err(err) => self.sqlid_error = Some(err),
-                }
+                self.sqlid_result = result;
                 self.show_popup = true;
                 Task::none()
             }
             Message::CellClicked(col, txt) => {
                 let sql_col = SESSION_HISTORY_HEADERS.iter().position(|&h| h == "SQL ID").unwrap();
                 if col == sql_col { 
-                    // self.state.begin_load();
-                    self.sqlid_data = None;
-                    self.sqlid_error = None;
+                    self.sqlid_result = default_table_result();
                     Task::perform(load_async( move || fetch_sqlid_data(&txt)), Message::SQLID)
                 } else {
                     Task::none()
@@ -167,16 +161,6 @@ impl SessionHistoryTable {
                 Task::none()
             }
         }
-    }
-
-    fn sqlid_as_text(&self) -> String {
-        if let Some(err) = &self.sqlid_error {
-            return format!("Error: {}", err);
-        }
-        if let Some(data) = &self.sqlid_data {
-            return format!("{}", data.get(0).and_then(|v| v.get(1)).map(|s| s.as_str()).unwrap_or("Unknown SQL ID"));
-        }
-        "No data".to_string()
     }
 
     pub fn view(self: &'_ Self) -> Element<'_, Message> { 
@@ -212,15 +196,15 @@ impl SessionHistoryTable {
         .spacing(10);
         
         if self.show_popup {
-            let popup = container(
+            let popup = scrollable(container(
                 column![
-                    text(self.sqlid_as_text()),
                     button("Close").on_press(Message::ClosePopup),
+                    text(sqlid_as_text(&self.sqlid_result)),
                 ]
                 .spacing(10)
             )
             .width(Length::Shrink)
-            .padding(20);
+            .padding(20));
 
             stack![
                 main_content,

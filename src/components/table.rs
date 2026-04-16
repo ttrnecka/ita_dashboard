@@ -1,5 +1,5 @@
 use std::default::Default;
-
+use crate::db::{queries::TableResult, DbError};
 use iced::widget::{row, column, scrollable, Container, text, mouse_area};
 use iced::{Element, Length, Font};
 
@@ -8,7 +8,7 @@ use iced::{Element, Length, Font};
 pub struct TableState {
     pub loading: bool,
     pub data: Option<Vec<Vec<String>>>,
-    pub error: Option<String>,
+    pub error: Option<DbError>,
 }
 
 impl TableState {
@@ -20,7 +20,7 @@ impl TableState {
     }
 
     /// Apply a loaded result (success or error)
-    pub fn apply_loaded(&mut self, result: Result<Vec<Vec<String>>, String>) {
+    pub fn apply_loaded(&mut self, result: TableResult) {
         self.loading = false;
         match result {
             Ok(vals) => self.data = Some(vals),
@@ -96,7 +96,7 @@ impl TableState {
         }
 
         if let Some(err) = &self.error {
-            return text(err).into();
+            return text(err.to_string()).into();
         }
 
         text("No data").into()
