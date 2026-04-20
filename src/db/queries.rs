@@ -243,6 +243,10 @@ pub fn fetch_sqlid_data(sql_id: &str) -> TableResult {
         SELECT sql_id,sql_text
         FROM DBA_HIST_SQLTEXT
         WHERE sql_id = :sql_id
+        UNION ALL
+        SELECT sql_id,sql_fulltext
+        FROM gv$sql
+        WHERE sql_id = :sql_id
     "#;
 
     let mut values = Vec::new();

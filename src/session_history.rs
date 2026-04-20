@@ -1,7 +1,8 @@
-use iced::{Element, Task, Length, Theme, widget::{column, row, button,container,text,stack, scrollable} };
+use iced::{Element, Task, widget::{column, row, button,stack} };
 
 use crate::db::queries::{fetch_session_history_data,fetch_sqlid_data,TableResult, default_table_result};
 use crate::components::table::TableState;
+use crate::components::popup::PopUp;
 use crate::db::{load_async, DbError};
 use crate::db::load::{sqlid_as_text};
 use chrono::{NaiveDateTime, Local, Duration};
@@ -40,6 +41,7 @@ pub struct SessionHistoryTable {
     pub end_str: String,
     show_popup: bool,
     sqlid_result: TableResult,
+    pub popup: PopUp
 }
 
 impl Default for SessionHistoryTable {
@@ -52,6 +54,7 @@ impl Default for SessionHistoryTable {
             end_str: now.format("%Y-%m-%d %H:%M:%S").to_string(),
             show_popup: false,
             sqlid_result: default_table_result(),
+            popup: PopUp::default()
         }
     }
 }
@@ -196,31 +199,9 @@ impl SessionHistoryTable {
         .spacing(10);
         
         if self.show_popup {
-            let popup = scrollable(container(
-                column![
-                    button("Close").on_press(Message::ClosePopup),
-                    text(sqlid_as_text(&self.sqlid_result)),
-                ]
-                .spacing(10)
-            )
-            .width(Length::Shrink)
-            .padding(20));
-
             stack![
                 main_content,
-                container(popup)
-                    .width(Length::Fill)
-                    .height(Length::Fill)
-                    // .center(Length::Fill)
-                    .style(|theme: &Theme| {
-                        let palette = theme.palette();
-                        container::Style {
-                            background: Some(palette.background.into()),
-                            text_color: Some(palette.text),
-                            ..Default::default()
-                        }
-                    })
-                    
+                self.popup.pop_up(Message::ClosePopup, sqlid_as_text(&self.sqlid_result).clone())
             ]
             .into()
         } else {

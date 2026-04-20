@@ -1,6 +1,7 @@
+#![windows_subsystem = "windows"]
 use std::io::Write;
 use iced::{
-    Alignment, Element, Length, Task, Theme, widget::{button, column, container, row}, window::{Settings}
+    Alignment, Element, Length, Task, Theme, widget::{button, column, container, row}, window::{Settings, icon}
 };
 
 mod temp;
@@ -147,10 +148,18 @@ impl MainApp {
 fn main() -> iced::Result {
     let _ = std::io::stderr().flush();
 
+    let icon = match icon::from_file("icon.png") {
+        Ok(icon) => Some(icon),
+        Err(e) => {
+            eprintln!("Failed to load window icon: {}", e);
+            None
+        }
+    };
+
     iced::application(MainApp::boot,MainApp::update, MainApp::view)
     .theme(MainApp::theme)
     .title(MainApp::title)
     .centered()
-    .window(Settings { maximized: true, ..Default::default() })
+    .window(Settings { maximized: true, icon, ..Default::default() })
     .run()
 }

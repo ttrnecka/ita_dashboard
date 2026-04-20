@@ -4,9 +4,10 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-iced = { version = "0.14", features = ["canvas", "tokio"] }
+iced = { version = "0.14", features = ["canvas", "tokio","image"] }
+# iced_aw = { version = "0.13.0", features = ["card"] }
 chrono = "0.4"
-#iced_aw = "0.7"             # extra widgets (optional)
+
 tokio = { version = "1", features = ["full"] }
 winit = "0.30"
 
@@ -28,7 +29,6 @@ strip = true
 
 [profile.dev]
 opt-level = 0        # no optimization → fastest compile
-debug = true         # keep debug info
 incremental = true   # reuse previous compilation work
 codegen-units = 256  # more parallelism → faster builds
 lto = false          # disable link-time optimization
