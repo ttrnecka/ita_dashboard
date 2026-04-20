@@ -1,6 +1,6 @@
 use iced::{Element, Task, widget::{stack}};
 
-use crate::db::queries::{fetch_session_temp_data,fetch_sqlid_data, TableResult, default_table_result};
+use crate::db::queries::{fetch_session_temp_data,fetch_sqlid_data, TableResult};
 use crate::db::load::{sqlid_as_text};
 use crate::components::table::TableState;
 use crate::components::popup::PopUp;
@@ -30,7 +30,7 @@ pub enum Message {
 pub struct SessionTempTable {
     pub state: TableState,
     show_popup: bool,
-    sqlid_result: TableResult,
+    sqlid_result: Option<TableResult>,
     pub popup: PopUp
 }
 
@@ -39,7 +39,7 @@ impl Default for SessionTempTable {
         Self {
             state: TableState::default(),
             show_popup: false,
-            sqlid_result: default_table_result(),
+            sqlid_result: None,
             popup: PopUp::default()
         }
     }
@@ -57,16 +57,14 @@ impl SessionTempTable {
                 Task::none()
             }
             Message::SQLID(result) => {
-                // self.state.apply_loaded(result);
-                self.sqlid_result = result;
-                self.show_popup = true;
+                self.sqlid_result = Some(result);
                 Task::none()
             }
             Message::CellClicked(col, txt) => {
                 let sql_col = SESSION_TEMP_HEADERS.iter().position(|&h| h == "SQL ID").unwrap();
                 if col == sql_col { 
-                    // self.state.begin_load();
-                    self.sqlid_result = default_table_result();
+                    self.sqlid_result = None;
+                    self.show_popup = true;
                     Task::perform(load_async( move || fetch_sqlid_data(&txt)), Message::SQLID)
                 } else {
                     Task::none()

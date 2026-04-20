@@ -36,14 +36,8 @@ pub fn fetch_temp_data() -> Result<Vec<TempDataPoint>, DbError> {
 
     Ok(values)
 }
-// #[derive(Debug,Clone)]
-// pub struct TableSpaceRow(pub String,pub u32,pub u32,pub u32,pub u32,pub u32);
 
 pub type TableResult = Result<Vec<Vec<String>>, DbError>;
-
-pub fn default_table_result() -> TableResult {
-    Ok(Vec::new())
-}
 
 pub fn fetch_tablespace_data() -> TableResult {
     let pool = get_pool()?;

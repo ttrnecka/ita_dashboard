@@ -3,6 +3,7 @@ use iced::mouse;
 use iced::widget::{ canvas, text};
 use iced::widget::canvas::{Stroke, Path, Text, Frame};
 use iced::{ Rectangle, Renderer, Point, Length, Theme, Color, Task, Element};
+use crate::constants::LOADING;
 
 use crate::db::queries::{fetch_temp_data,TempDataPoint};
 
@@ -81,7 +82,7 @@ impl TempGraph {
 
     pub fn view(self: &'_ Self) -> Element<'_, Message> { 
         if self.loading {
-            text("Loading data...").into()
+            text(LOADING).into()
         } else if let Some(_data) = &self.data {
             canvas(self.clone())
                 .width(Length::Fill)

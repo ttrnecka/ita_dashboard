@@ -1,0 +1,1 @@
+pub const LOADING: &str = "Loading data...";

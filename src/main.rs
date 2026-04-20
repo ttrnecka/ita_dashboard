@@ -14,9 +14,8 @@ mod session_history;
 use session_history::SessionHistoryTable;
 mod session_temp;
 use session_temp::SessionTempTable;
-
+mod constants;
 mod components;
-
 mod db;
 
 #[derive(Debug, Clone)]

@@ -1,0 +1,3 @@
+username = "portal"
+password = "portal"
+connect_string = "<ip>:<port>/<pdb>"

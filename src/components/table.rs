@@ -2,6 +2,7 @@ use std::default::Default;
 use crate::db::{queries::TableResult, DbError};
 use iced::widget::{row, column, scrollable, Container, text, mouse_area};
 use iced::{Element, Length, Font};
+use crate::constants::LOADING;
 
 /// Generic table state used by multiple table views (filesystem, tablespace, ...)
 #[derive(Default, Debug, Clone)]
@@ -37,7 +38,7 @@ impl TableState {
         F: Fn(usize, String) -> Message + 'a,
     {
         if self.loading {
-            return text("Loading data...").into();
+            return text(LOADING).into();
         }
 
         if let Some(_data) = &self.data {

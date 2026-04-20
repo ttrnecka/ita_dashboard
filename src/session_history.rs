@@ -1,6 +1,6 @@
 use iced::{Element, Task, widget::{column, row, button,stack} };
 
-use crate::db::queries::{fetch_session_history_data,fetch_sqlid_data,TableResult, default_table_result};
+use crate::db::queries::{fetch_session_history_data,fetch_sqlid_data,TableResult};
 use crate::components::table::TableState;
 use crate::components::popup::PopUp;
 use crate::db::{load_async, DbError};
@@ -40,7 +40,7 @@ pub struct SessionHistoryTable {
     pub start_str: String,
     pub end_str: String,
     show_popup: bool,
-    sqlid_result: TableResult,
+    sqlid_result: Option<TableResult>,
     pub popup: PopUp
 }
 
@@ -53,7 +53,7 @@ impl Default for SessionHistoryTable {
             start_str: start.format("%Y-%m-%d %H:%M:%S").to_string(),
             end_str: now.format("%Y-%m-%d %H:%M:%S").to_string(),
             show_popup: false,
-            sqlid_result: default_table_result(),
+            sqlid_result: None,
             popup: PopUp::default()
         }
     }
@@ -146,14 +146,14 @@ impl SessionHistoryTable {
                 Task::none()
             }
             Message::SQLID(result) => {
-                self.sqlid_result = result;
-                self.show_popup = true;
+                self.sqlid_result = Some(result);
                 Task::none()
             }
             Message::CellClicked(col, txt) => {
                 let sql_col = SESSION_HISTORY_HEADERS.iter().position(|&h| h == "SQL ID").unwrap();
                 if col == sql_col { 
-                    self.sqlid_result = default_table_result();
+                    self.sqlid_result = None;
+                    self.show_popup = true;
                     Task::perform(load_async( move || fetch_sqlid_data(&txt)), Message::SQLID)
                 } else {
                     Task::none()
