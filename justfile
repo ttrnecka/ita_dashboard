@@ -20,3 +20,12 @@ run:
 # check the code
 check:
     cargo check
+
+# clean zip and dist artifacts
+clean_artifacts:
+    (Remove-Item -Recurse -Force {{outputDir}} -ErrorAction SilentlyContinue) -and (exit 0) 
+    (Remove-Item -Recurse -Force {{zipFile}} -ErrorAction SilentlyContinue) -and (exit 0)
+
+# full cleanup including cargo 
+cleanup: clean_artifacts
+    cargo clean

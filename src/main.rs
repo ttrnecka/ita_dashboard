@@ -107,7 +107,7 @@ impl MainApp {
                 .on_press(Message::Filesystem(filesystem::Message::Load)),
             button("Session History")
                 .width(Length::Fill)
-                .on_press(Message::SessionHistory(session_history::Message::Load)),
+                .on_press(Message::SessionHistory(session_history::Message::PresetLast1Hour)),
         ]
         .spacing(2)
         .padding(5)
