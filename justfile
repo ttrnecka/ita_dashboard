@@ -1,17 +1,24 @@
-set shell := ["powershell.exe", "-c"]
-
-outputDir := '.\dist'
+outputDir := './dist'
 zipFile := "ita_dashboard.zip"
-releaseDir := '.\target\release'
+releaseDir := './target/release'
+winReleaseDir := './target/x86_64-pc-windows-gnu/release'
 
 # build for release
 build:
     cargo build --release
-    New-Item -ItemType Directory -Force -Path {{outputDir}} | Out-Null
-    Get-ChildItem "{{releaseDir}}\*.exe" | Select-Object -First 1 | Copy-Item -Destination {{outputDir}}
-    Copy-Item db_config.toml.example {{outputDir}} 
-    Copy-Item icon.png {{outputDir}} 
-    Compress-Archive -Path "{{outputDir}}\*" -DestinationPath {{zipFile}} -Force
+    mkdir -p "{{outputDir}}"
+    cp "{{releaseDir}}/ita_dashboard" "{{outputDir}}/"
+    cp db_config.toml.example {{outputDir}} 
+    cp icon.png {{outputDir}} 
+    (cd "{{outputDir}}" && zip -r "{{zipFile}}" .)
+
+build_win:
+    cargo build --target x86_64-pc-windows-gnu --release
+    mkdir -p "{{outputDir}}"
+    cp "{{winReleaseDir}}/ita_dashboard.exe" "{{outputDir}}/"
+    cp db_config.toml.example {{outputDir}} 
+    cp icon.png {{outputDir}} 
+    (cd "{{outputDir}}" && zip -r "{{zipFile}}" .)
 
 # run the application
 run:

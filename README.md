@@ -1,7 +1,20 @@
-# Instal just
+# Install Mise
 
-choco install just
+https://mise.jdx.dev/getting-started.html
 
-or
+# install gcc and such
+sudo apt install build-essential
 
-winget install --id Casey.Just --exact
+# run
+just run
+
+# build 
+just build
+just build_win
+
+# set up build under Linux for Windows target
+rustup target add x86_64-pc-windows-gnu
+sudo apt install mingw-w64
+sudo apt-get install zip
+
+sudo apt install libaio1 unzip
